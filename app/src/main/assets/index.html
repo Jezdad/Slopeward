@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dachschrägen-Schrankplaner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: Werkstattblatt – Eingaben oben, Skizze, dann Kennwerte und Zuschnittliste in einer Spalte */
+:root{
+  --bg:#eceff0; --paper:#f8f9f9; --ink:#1b2526; --muted:#5d6b6d; --line:#c9d1d2;
+  --accent:#e2b007; --accent-ink:#1b2526; --dim:#1f6f78; --wood:#d9c7a3; --wood-edge:#a88a57; --door:#e8dcc2; --warn:#b3471d;
+  --f-display:"Archivo",system-ui,sans-serif; --f-body:"Archivo",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151b1c; --paper:#1d2526; --ink:#e6ecec; --muted:#9aa8aa; --line:#33403f;
+  --accent:#f0c43a; --accent-ink:#151b1c; --dim:#5fbcc6; --wood:#6b5a3c; --wood-edge:#a88a57; --door:#7d6a48; --warn:#f08a5d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151b1c; --paper:#1d2526; --ink:#e6ecec; --muted:#9aa8aa; --line:#33403f;
+  --accent:#f0c43a; --accent-ink:#151b1c; --dim:#5fbcc6; --wood:#6b5a3c; --wood-edge:#a88a57; --door:#7d6a48; --warn:#f08a5d; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:820px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--f-display);font-weight:800;font-size:1.7rem;line-height:1.15;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-weight:600;font-size:1.05rem;margin:0 0 10px;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;max-width:62ch}
+section{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.in{display:flex;align-items:center;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.in:focus-within{outline:2px solid var(--dim);outline-offset:1px}
+input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:600 1rem var(--f-mono);padding:8px 10px;outline:none}
+.u{padding-right:10px;font:400 .8rem var(--f-mono);color:var(--muted);text-transform:none;letter-spacing:0}
+.group-t{font-size:.8rem;font-weight:600;color:var(--ink);margin:16px 0 8px;text-transform:uppercase;letter-spacing:.06em}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px}
+.seg button{background:transparent;color:var(--muted);border-radius:5px;padding:10px 8px;line-height:1.25}
+.seg button small{display:block;font-weight:400;font-size:.75rem}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{border-left:3px solid var(--accent);padding:4px 0 4px 10px}
+.kpi b{display:block;font:600 1.35rem var(--f-mono);font-variant-numeric:tabular-nums}
+.kpi span{font-size:.78rem;color:var(--muted)}
+.svgbox{overflow-x:auto}
+svg{display:block;width:100%;height:auto;max-width:100%}
+svg text{font-family:var(--f-mono);font-size:11px;fill:var(--ink)}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+td.m{font-family:var(--f-mono);white-space:nowrap}
+td small{color:var(--muted);display:block}
+.warn{color:var(--warn);font-weight:600;margin:10px 0 0}
+.warn:empty{display:none}
+button{font:600 .9rem var(--f-body);background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:9px 14px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--dim);outline-offset:2px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.note{font-size:.85rem;color:var(--muted);margin:10px 0 0}
+ul.steps{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.tag{display:inline-block;font-size:.72rem;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted);margin-left:6px;vertical-align:middle;text-transform:none;letter-spacing:0;font-weight:400}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>Dachschrägen-Schrankplaner</h1>
+    <p class="sub">Kniestock, höchsten Punkt und Abstand eingeben. Der Planer rechnet Neigung, Zuschnitt und Schnittwinkel aus. Eingaben in cm, Ergebnisse in mm.</p>
+  </header>
+
+  <section>
+    <div class="group-t" style="margin-top:0">Wo steht der Schrank?</div>
+    <div class="seg" role="group" aria-label="Einbauort">
+      <button type="button" id="mG" aria-pressed="true">An der Giebelwand<small>Schräge läuft über die Breite</small></button>
+      <button type="button" id="mK" aria-pressed="false">Vor dem Kniestock<small>Schräge läuft über die Tiefe</small></button>
+    </div>
+
+    <div class="group-t">Raum (gemessen) <span class="tag" id="ex">Beispielwerte</span></div>
+    <div class="grid">
+      <label for="h1">Höhe am Kniestock<div class="in"><input id="h1" type="number" step="0.1" inputmode="decimal" value="100"><span class="u">cm</span></div></label>
+      <label for="h2">Höhe am höchsten Punkt<div class="in"><input id="h2" type="number" step="0.1" inputmode="decimal" value="250"><span class="u">cm</span></div></label>
+      <label for="d">Waagerechter Abstand dazwischen<div class="in"><input id="d" type="number" step="0.1" inputmode="decimal" value="260"><span class="u">cm</span></div></label>
+    </div>
+    <div class="group-t">Schrank</div>
+    <div class="grid">
+      <label for="W">Gesamtbreite<div class="in"><input id="W" type="number" step="0.1" inputmode="decimal" value="200"><span class="u">cm</span></div></label>
+      <label for="T">Tiefe<div class="in"><input id="T" type="number" step="0.1" inputmode="decimal" value="60"><span class="u">cm</span></div></label>
+      <label for="n">Anzahl Fächer/Türen<div class="in"><input id="n" type="number" step="1" min="1" inputmode="numeric" value="4"><span class="u">Stk</span></div></label>
+      <label for="o">Abstand zum Kniestock<div class="in"><input id="o" type="number" step="0.1" inputmode="decimal" value="0"><span class="u">cm</span></div></label>
+    </div>
+    <div class="group-t">Material &amp; Luft</div>
+    <div class="grid">
+      <label for="m">Plattenstärke<div class="in"><input id="m" type="number" step="0.1" inputmode="decimal" value="1.9"><span class="u">cm</span></div></label>
+      <label for="s">Sockelhöhe<div class="in"><input id="s" type="number" step="0.1" inputmode="decimal" value="8"><span class="u">cm</span></div></label>
+      <label for="f">Luft zur Schräge<div class="in"><input id="f" type="number" step="0.1" inputmode="decimal" value="1"><span class="u">cm</span></div></label>
+      <label for="fu">Türfuge<div class="in"><input id="fu" type="number" step="0.1" inputmode="decimal" value="0.3"><span class="u">cm</span></div></label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dachschräge</h2>
+    <div class="kpis">
+      <div class="kpi"><b id="kA">–</b><span>Neigung zur Waagerechten</span></div>
+      <div class="kpi"><b id="kP">–</b><span>Steigung</span></div>
+      <div class="kpi"><b id="kL">–</b><span>Länge der Schräge</span></div>
+      <div class="kpi"><b id="kM">–</b><span>Höhenzuwachs je 10 cm</span></div>
+    </div>
+    <div class="grid" style="margin-top:14px">
+      <label for="qx">Höhe bei Abstand vom Kniestock<div class="in"><input id="qx" type="number" step="0.1" inputmode="decimal" value="60"><span class="u">cm</span></div></label>
+      <div class="kpi" style="align-self:end"><b id="qy">–</b><span>Raumhöhe an dieser Stelle</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 id="picT">Ansicht</h2>
+    <div class="svgbox"><svg id="pic" viewBox="0 0 640 360" role="img" aria-label="Skizze von Dachschräge und Schrank"></svg></div>
+    <p class="warn" id="warn"></p>
+  </section>
+
+  <section>
+    <h2>Schnittwinkel</h2>
+    <ul class="steps" id="angles"></ul>
+  </section>
+
+  <section>
+    <div class="row"><h2 style="margin:0">Zuschnittliste</h2><button id="copy" type="button">Liste kopieren</button></div>
+    <div class="tbl" style="margin-top:10px"><table>
+      <thead><tr><th>Stk</th><th>Teil</th><th>Maße</th></tr></thead>
+      <tbody id="cut"></tbody>
+    </table></div>
+    <p class="note" id="build"></p>
+    <p class="note">Vor dem Zuschnitt an zwei, drei Stellen nachmessen, Dachschrägen sind selten ganz gerade.</p>
+  </section>
+</div>
+
+<script>
+const ids=["h1","h2","d","W","T","n","o","m","s","f","fu","qx"];
+const $=i=>document.getElementById(i);
+let mode="G";
+try{const sv=JSON.parse(localStorage.getItem("dsp")||"null");if(sv){ids.forEach(i=>{if(sv[i]!=null)$(i).value=sv[i]});if(sv.mode)mode=sv.mode;$("ex").hidden=true}}catch(e){}
+const mm=v=>Math.round(v*10).toLocaleString("de-DE")+" mm";
+const n1=v=>v.toLocaleString("de-DE",{maximumFractionDigits:1});
+let lastText="";
+function setMode(m){mode=m;$("mG").setAttribute("aria-pressed",m==="G");$("mK").setAttribute("aria-pressed",m==="K");calc()}
+function calc(){
+  const v={};ids.forEach(i=>v[i]=parseFloat($(i).value)||0);
+  try{localStorage.setItem("dsp",JSON.stringify({...Object.fromEntries(ids.map(i=>[i,$(i).value])),mode}))}catch(e){}
+  const {h1,h2,d,W,T,o,m,s,f,fu}=v; const n=Math.max(1,Math.round(v.n));
+  const dh=h2-h1; if(d<=0||dh<=0){$("warn").textContent="Der höchste Punkt muss höher sein als der Kniestock und der Abstand größer als 0.";return}
+  const a=Math.atan(dh/d), deg=a*180/Math.PI, tn=Math.tan(a), cs=Math.cos(a);
+  $("kA").textContent=n1(deg)+"°";$("kP").textContent=n1(tn*100)+" %";$("kL").textContent=mm(Math.hypot(d,dh));$("kM").textContent=mm(10*tn);
+  $("qy").textContent=mm(Math.min(h1+v.qx*tn,h2));
+  const top=x=>h1+x*tn-f, dv=m/cs, warn=[];
+  let parts, angles, build;
+  if(mode==="G"){
+    // Schrank an der Giebelwand: Breite läuft vom Kniestock Richtung First
+    if(o+W>d)warn.push("Der Schrank reicht über den höchsten Punkt hinaus. Breite oder Abstand zum Kniestock verkleinern.");
+    const pitch=(W-m)/n; // Abstand der Wände (Außenkante zu Außenkante)
+    const walls=[]; for(let i=0;i<=n;i++){const x=o+i*pitch;walls.push({x,lo:top(x)-s-m-dv,hi:top(x)-s-m-dv+m*tn})}
+    if(walls[0].lo<=0)warn.push("Die erste Wand am Kniestock hat keine Höhe mehr. Abstand zum Kniestock vergrößern oder Sockel kleiner machen.");
+    const iw=pitch-m, dw=(W-(n+1)*fu)/n;
+    parts=walls.map((w,i)=>[1,i===0?"Seitenteil links (Kniestockseite)":i===n?"Seitenteil rechts (Firstseite)":`Mittelwand ${i}`,`${mm(T)} × ${mm(w.lo)}`,`Tiefe × Höhe (kurze Seite), Oberkante ${n1(deg)}° angefast, lange Seite ${mm(w.hi)}`]);
+    parts.push([1,"Boden",`${mm(W)} × ${mm(T)}`,"Durchgehend, alle Wände stehen drauf"]);
+    parts.push([1,"Deckplatte (schräg)",`${mm(W/cs)} × ${mm(T)}`,`Länge entlang der Schräge × Tiefe, beide Stirnkanten mit ${n1(deg)}° Sägeblattneigung`]);
+    for(let i=0;i<n;i++){const xl=o+i*(dw+fu)+fu, xr=xl+dw;parts.push([1,`Tür ${i+1} (Trapez)`,`${mm(dw)} breit · links ${mm(top(xl)-s-fu)} · rechts ${mm(top(xr)-s-fu)}`,`Oberkante schräg mit ${n1(deg)}°`])}
+    for(let i=0;i<n;i++){parts.push([1,`Einlegeboden Fach ${i+1}`,`${mm(iw-0.1)} × ${mm(T-2)}`,`Höchste Lage ca. ${mm(walls[i].lo+s+m-2)} über Fußboden`])}
+    parts.push([1,"Sockelblende",`${mm(W)} × ${mm(s)}`,""]);
+    parts.push([1,"Rückwand (optional, Trapez)",`${mm(W-0.2)} breit · links ${mm(top(o)-s-0.2)} · rechts ${mm(top(o+W)-s-0.2)}`,"Nur nötig, wenn die Giebelwand nicht als Rückwand reicht"]);
+    angles=[
+      `Wände sind Rechtecke. Die Oberkante bekommt eine Fase mit <b>${n1(deg)}°</b> Sägeblattneigung, damit die Deckplatte satt aufliegt (hohe Seite zum First).`,
+      `Deckplatte: beide Stirnkanten mit <b>${n1(deg)}°</b> Sägeblattneigung schneiden, dann stehen sie senkrecht.`,
+      `Türen anreißen: links und rechts die Höhe abtragen und verbinden. Innenwinkel oben links <b>${n1(90-deg)}°</b>, oben rechts <b>${n1(90+deg)}°</b>.`,
+      `Schmiege einstellen: <b>${n1(deg)}°</b> zur Waagerechten bzw. <b>${n1(90-deg)}°</b> zur Senkrechten.`
+    ];
+    build="Aufbau: Sockel, durchgehender Boden, Seiten und Mittelwände stehen auf dem Boden, schräge Deckplatte liegt oben auf. Türen vorgesetzt, Rücken an der Giebelwand.";
+    $("picT").textContent="Vorderansicht";
+    drawG(v,a,tn,top,walls,n,pitch);
+  } else {
+    if(o+T>d)warn.push("Der Schrank reicht über den höchsten Punkt hinaus. Vorne ist die Höhe auf den höchsten Punkt begrenzt, die Werte stimmen dann nicht mehr.");
+    const sh=top(o)-s-m-dv, sv=top(o+T)-s-m-dv, iw=(W-(n+1)*m)/n, dw=(W-(n+1)*fu)/n, dhgt=top(o+T)-s-fu, sl=T/cs;
+    if(sh<=0)warn.push("Hinten bleibt keine Seitenhöhe übrig. Abstand zum Kniestock vergrößern oder Sockel kleiner machen.");
+    parts=[
+      [2,"Seitenteil (Trapez)",`T ${mm(T)} · hinten ${mm(sh)} · vorne ${mm(sv)}`,`Schräge Kante ${mm(sl)}`],
+      ...(n>1?[[n-1,"Mittelwand (Trapez)",`T ${mm(T)} · hinten ${mm(sh)} · vorne ${mm(sv)}`,"Gleich wie Seitenteil"]]:[]),
+      [1,"Boden",`${mm(W)} × ${mm(T)}`,"Durchgehend, Seiten stehen drauf"],
+      [1,"Deckplatte (schräg)",`${mm(W)} × ${mm(sl)}`,`Vorder- und Hinterkante mit ${n1(deg)}° Sägeblattneigung`],
+      [n,"Tür",`${mm(dw)} × ${mm(dhgt)}`,"Breite × Höhe, vorgesetzt, oben gerade"],
+      [n,"Einlegeboden",`${mm(iw-0.1)} × ${mm(T-2)}`,`Volle Tiefe nur bis ${mm(sh+s+m)} über Fußboden, darüber kürzen`],
+      [1,"Sockelblende",`${mm(W)} × ${mm(s)}`,""],
+      [1,"Rückwand (optional, HDF)",`${mm(W-0.2)} × ${mm(top(o)-s-0.2)}`,"Nur nötig, wenn Abstand zum Kniestock"]
+    ];
+    angles=[
+      `Seitenteile/Mittelwände anreißen: hinten <b>${mm(sh)}</b>, vorne <b>${mm(sv)}</b> abtragen, Punkte verbinden und gerade sägen. Die Kante steigt mit <b>${n1(deg)}°</b>.`,
+      `Innenwinkel am Seitenteil: oben hinten <b>${n1(90+deg)}°</b>, oben vorne <b>${n1(90-deg)}°</b>.`,
+      `Deckplatte: Vorder- und Hinterkante mit <b>${n1(deg)}°</b> Sägeblattneigung schneiden, dann stehen die Kanten senkrecht.`,
+      `Schmiege einstellen: <b>${n1(deg)}°</b> zur Waagerechten bzw. <b>${n1(90-deg)}°</b> zur Senkrechten.`
+    ];
+    build="Aufbau: Sockel, durchgehender Boden, Seiten und Mittelwände stehen auf dem Boden, schräge Deckplatte liegt oben auf. Türen vorgesetzt.";
+    $("picT").textContent="Seitenansicht";
+    drawK(v,a,tn,top);
+  }
+  $("warn").textContent=warn.join(" ");
+  $("cut").innerHTML=parts.map(p=>`<tr><td class="m">${p[0]}×</td><td>${p[1]}${p[3]?`<small>${p[3]}</small>`:""}</td><td class="m">${p[2]}</td></tr>`).join("");
+  $("angles").innerHTML=angles.map(t=>`<li>${t}</li>`).join("");
+  $("build").textContent=build;
+  lastText=`Dachschräge: ${n1(deg)}° (Kniestock ${n1(h1)} cm, oben ${n1(h2)} cm, Abstand ${n1(d)} cm) – Schrank ${mode==="G"?"an der Giebelwand":"vor dem Kniestock"}\n`+parts.map(p=>`${p[0]}x ${p[1]}: ${p[2]}${p[3]?" ("+p[3]+")":""}`).join("\n");
+}
+function frame(v,extent){
+  const Wv=640,Hv=360,pad=48, span=extent*1.08, sc=Math.min((Wv-pad*2)/span,(Hv-pad*1.6)/v.h2);
+  return {X:x=>pad+x*sc,Y:y=>Hv-30-y*sc,span};
+}
+function roofAndDims(g,v,a,tn,X,Y,span){
+  const {h1,h2,d}=v;
+  g.push(`<line x1="${X(0)-20}" y1="${Y(0)}" x2="${X(span)}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="1.5"/>`);
+  g.push(`<polyline points="${X(0)},${Y(0)} ${X(0)},${Y(h1)} ${X(d)},${Y(h2)} ${X(span)},${Y(h2)}" fill="none" stroke="var(--ink)" stroke-width="2.5"/>`);
+  const dimV=(x,y1,lbl,side)=>{const xx=X(x)+side*10;return `<line x1="${xx}" y1="${Y(0)}" x2="${xx}" y2="${Y(y1)}" stroke="var(--dim)"/><text x="${xx+side*4}" y="${(Y(0)+Y(y1))/2}" text-anchor="${side<0?"end":"start"}" dominant-baseline="middle" style="fill:var(--dim)">${lbl}</text>`};
+  g.push(dimV(0,h1,n1(h1)+" cm",-1)); g.push(dimV(d,h2,n1(h2)+" cm",1));
+  g.push(`<line x1="${X(0)}" y1="${Y(0)+16}" x2="${X(d)}" y2="${Y(0)+16}" stroke="var(--dim)"/><text x="${(X(0)+X(d))/2}" y="${Y(0)+28}" text-anchor="middle" style="fill:var(--dim)">${n1(d)} cm</text>`);
+  const r=34, ax=X(d*0.62), ay=Y(h1+d*0.62*tn);
+  g.push(`<path d="M${ax+r},${ay} A${r},${r} 0 0 0 ${ax+r*Math.cos(a)},${ay-r*Math.sin(a)}" fill="none" stroke="var(--accent)" stroke-width="2.5"/><line x1="${ax}" y1="${ay}" x2="${ax+r+14}" y2="${ay}" stroke="var(--accent)" stroke-dasharray="3 3"/><text x="${ax+r+18}" y="${ay-6}" style="font-weight:600">${n1(a*180/Math.PI)}°</text>`);
+}
+function drawG(v,a,tn,top,walls,n,pitch){
+  const {d,W,o,s,m,fu}=v, {X,Y,span}=frame(v,Math.max(d,o+W)), g=[];
+  roofAndDims(g,v,a,tn,X,Y,span);
+  const x0=o,x1=o+W;
+  g.push(`<polygon points="${X(x0)},${Y(0)} ${X(x0)},${Y(top(x0))} ${X(x1)},${Y(top(x1))} ${X(x1)},${Y(0)}" fill="var(--wood)" stroke="var(--wood-edge)" stroke-width="1.5"/>`);
+  g.push(`<line x1="${X(x0)}" y1="${Y(s)}" x2="${X(x1)}" y2="${Y(s)}" stroke="var(--wood-edge)"/>`);
+  const dw=(W-(n+1)*fu)/n;
+  for(let i=0;i<n;i++){const xl=o+i*(dw+fu)+fu,xr=xl+dw;g.push(`<polygon points="${X(xl)},${Y(s+fu/2)} ${X(xl)},${Y(top(xl)-fu)} ${X(xr)},${Y(top(xr)-fu)} ${X(xr)},${Y(s+fu/2)}" fill="var(--door)" stroke="var(--wood-edge)"/>`);
+    g.push(`<text x="${(X(xl)+X(xr))/2}" y="${Y(s)-12}" text-anchor="middle">${i+1}</text>`)}
+  g.push(`<text x="${(X(x0)+X(x1))/2}" y="${Y(0)-2}" text-anchor="middle" dy="-0.2em" style="font-size:10px;fill:var(--muted)">B ${n1(W)} cm</text>`);
+  $("pic").innerHTML=g.join("");
+}
+function drawK(v,a,tn,top){
+  const {d,T,o,s,m}=v, {X,Y,span}=frame(v,Math.max(d,o+T)), g=[];
+  roofAndDims(g,v,a,tn,X,Y,span);
+  const x0=o,x1=o+T;
+  g.push(`<polygon points="${X(x0)},${Y(0)} ${X(x0)},${Y(top(x0))} ${X(x1)},${Y(top(x1))} ${X(x1)},${Y(0)}" fill="var(--wood)" stroke="var(--wood-edge)" stroke-width="1.5"/>`);
+  g.push(`<line x1="${X(x0)}" y1="${Y(s)}" x2="${X(x1)}" y2="${Y(s)}" stroke="var(--wood-edge)"/>`);
+  g.push(`<line x1="${X(x0)}" y1="${Y(s+m)}" x2="${X(x1)}" y2="${Y(s+m)}" stroke="var(--wood-edge)"/>`);
+  g.push(`<text x="${(X(x0)+X(x1))/2}" y="${Y(top(x0)/2)}" text-anchor="middle" style="font-weight:600">Schrank</text><text x="${(X(x0)+X(x1))/2}" y="${Y(top(x0)/2)+14}" text-anchor="middle">T ${n1(T)} cm</text>`);
+  $("pic").innerHTML=g.join("");
+}
+ids.forEach(i=>$(i).addEventListener("input",()=>{$("ex").hidden=true;calc()}));
+$("mG").addEventListener("click",()=>setMode("G"));
+$("mK").addEventListener("click",()=>setMode("K"));
+$("copy").addEventListener("click",async()=>{const b=$("copy");try{if(window.Android){Android.copy(lastText)}else{await navigator.clipboard.writeText(lastText)}b.textContent="Kopiert"}catch(e){b.textContent="Kopieren nicht möglich"}setTimeout(()=>b.textContent="Liste kopieren",1800)});
+setMode(mode);
+</script>
+
+</body>
+</html>
