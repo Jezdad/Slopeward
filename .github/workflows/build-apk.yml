@@ -67,10 +67,18 @@ jobs:
           echo "Signaturschlüssel ist in Ordnung."
 
       - name: Versionsnummer festlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ github.event_name == 'release' && github.ref_name || inputs.release_tag }}"
           if [ -n "$TAG" ]; then
-            V="${TAG#v}"
+            # Schreibweisen wie "1.0.0", "V1.0.0" oder "v.1.0.0" vereinheitlichen
+            V=$(printf '%s' "$TAG" | tr -d '[:space:]' | sed -E 's/^[vV]?\.?//')
+            TAG="v$V"
+            if ! gh release view "$TAG" > /dev/null 2>&1; then
+              echo "::error::Es gibt kein Release mit dem Tag $TAG. Bitte zuerst unter Releases ein Release mit diesem Tag veröffentlichen."
+              exit 1
+            fi
             echo "RELEASE_TAG=$TAG" >> "$GITHUB_ENV"
           else
             V="dev-${{ github.run_number }}"
