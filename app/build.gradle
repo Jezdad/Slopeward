@@ -2,6 +2,9 @@ plugins {
     id 'com.android.application'
 }
 
+// Signaturschlüssel kommt beim Build auf GitHub aus den Repository-Secrets.
+def keystorePath = System.getenv("SIGNING_KEYSTORE_PATH")
+
 android {
     namespace 'de.rietschle.dachschraege'
     compileSdk 34
@@ -10,13 +13,25 @@ android {
         applicationId 'de.rietschle.dachschraege'
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName '1.0'
+        versionCode((System.getenv("VERSION_CODE") ?: "1") as int)
+        versionName(System.getenv("VERSION_NAME") ?: "dev")
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePath) {
+                storeFile file(keystorePath)
+                storePassword System.getenv("SIGNING_PASSWORD")
+                keyAlias "slopeward"
+                keyPassword System.getenv("SIGNING_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig keystorePath ? signingConfigs.release : signingConfigs.debug
         }
     }
 
