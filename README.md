@@ -29,7 +29,3 @@ Bei einem Update die neue APK einfach drüber installieren. Deine Eingaben bleib
 | `.github/workflows/build-apk.yml` | Baut die APK auf GitHub |
 
 Änderungen am Planer passieren fast immer nur in `index.html`.
-
-## Selbst bauen (optional)
-
-Mit Android Studio: Ordner öffnen, dann **Build → Build App Bundle(s)/APK(s) → Build APK(s)**. Die APK liegt danach unter `app/build/outputs/apk/debug/`.
