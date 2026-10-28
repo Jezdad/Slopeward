@@ -78,7 +78,7 @@ jobs:
             # Schreibweisen wie "1.0.0", "V1.0.0" oder "v.1.0.0" vereinheitlichen
             V=$(printf '%s' "$TAG" | tr -d '[:space:]' | sed -E 's/^[vV]?\.?//')
             TAG="v$V"
-            if gh release view "$TAG" > /dev/null 2>&1; then
+            if gh release view "$TAG" > /dev/null 2>&1 || git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null 2>&1; then
               echo "::error::Version $V gibt es schon. Bitte eine neue Versionsnummer nehmen, z. B. eine höhere."
               exit 1
             fi
@@ -109,5 +109,9 @@ jobs:
           gh release create "$RELEASE_TAG" --draft --target "$GITHUB_SHA" \
             --title "Slopeward $VERSION_NAME" --notes "${NOTES:-Slopeward $VERSION_NAME}"
           gh release upload "$RELEASE_TAG" "Slopeward-$VERSION_NAME.apk"
-          gh release edit "$RELEASE_TAG" --draft=false --latest
+          if ! gh release edit "$RELEASE_TAG" --draft=false --latest; then
+            gh release delete "$RELEASE_TAG" --yes || true
+            echo "::error::Version $VERSION_NAME konnte nicht veröffentlicht werden. Meist war die Versionsnummer schon einmal vergeben (auch gelöschte Releases sperren sie). Bitte mit einer neuen Nummer erneut starten, z. B. eine höhere."
+            exit 1
+          fi
           echo "Release: $(gh release view "$RELEASE_TAG" --json url -q .url)"
