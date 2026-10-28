@@ -1,31 +1,33 @@
-# Slopeward – Dachschrägen-Planer
+# Slopeward – Sloped Ceiling Cabinet Planner
 
-Android-App zum Planen von Schränken unter der Dachschräge. Du gibst die Höhe am Kniestock, die Höhe am höchsten Punkt und den waagerechten Abstand dazwischen ein. Die App rechnet daraus die Neigung, eine Zuschnittliste und die Schnittwinkel.
+Android app for planning cabinets under a sloped ceiling. Enter the height at the knee wall, the height at the highest point and the horizontal distance between them. The app works out the roof pitch, a cut list and the cutting angles.
 
-Zwei Einbauarten:
-- **An der Giebelwand**: Die Schräge läuft über die Breite des Schranks, die Türen werden Trapeze.
-- **Vor dem Kniestock**: Die Schräge läuft über die Tiefe, die Seitenteile werden Trapeze.
+The app's interface is in German.
 
-Die App läuft offline und merkt sich deine Eingaben. „Liste kopieren“ legt die Zuschnittliste in die Zwischenablage.
+Two installation types:
+- **Against the gable wall**: the slope runs across the cabinet's width, so the doors become trapezoids.
+- **In front of the knee wall**: the slope runs across the cabinet's depth, so the side panels become trapezoids.
 
-## APK herunterladen
+The app works offline and remembers your inputs. "Liste kopieren" (copy list) puts the cut list on the clipboard.
 
-GitHub baut die App nach jeder Änderung automatisch.
+## Download the APK
 
-1. Oben auf **Actions** gehen und den neuesten Lauf mit grünem Haken öffnen.
-2. Ganz unten bei **Artifacts** auf **Dachschraege-APK** klicken und die ZIP entpacken.
-3. `app-debug.apk` aufs Handy kopieren und antippen. Beim ersten Mal „Unbekannte Apps installieren“ erlauben.
+GitHub builds the app automatically after every change.
 
-Die Artifacts bleiben 90 Tage liegen. Danach unter Actions → „APK bauen“ → **Run workflow** einen neuen Build starten.
+1. Go to **Actions** and open the latest run with a green check mark.
+2. At the bottom, under **Artifacts**, click **Dachschraege-APK** and unzip the file.
+3. Copy `app-debug.apk` to your phone and tap it. The first time, allow "Install unknown apps".
 
-Bei einem Update die neue APK einfach drüber installieren. Deine Eingaben bleiben dabei erhalten.
+Artifacts are kept for 90 days. After that, start a new build under Actions → "APK bauen" → **Run workflow**.
 
-## Aufbau
+To update, install the new APK over the old one. Your inputs are kept.
 
-| Pfad | Inhalt |
+## Project layout
+
+| Path | Contents |
 |---|---|
-| `app/src/main/assets/index.html` | Der ganze Planer: Oberfläche und Rechenlogik |
-| `app/src/main/java/.../MainActivity.java` | Zeigt die Seite an und kümmert sich um die Zwischenablage |
-| `.github/workflows/build-apk.yml` | Baut die APK auf GitHub |
+| `app/src/main/assets/index.html` | The whole planner: interface and calculations |
+| `app/src/main/java/.../MainActivity.java` | Displays the page and handles the clipboard |
+| `.github/workflows/build-apk.yml` | Builds the APK on GitHub |
 
-Änderungen am Planer passieren fast immer nur in `index.html`.
+Changes to the planner almost always happen in `index.html` only.
