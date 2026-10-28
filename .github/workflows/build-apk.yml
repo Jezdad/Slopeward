@@ -13,6 +13,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Optional: Tag eines bestehenden Releases (z. B. v1.0.0), an das die APK gehängt wird'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -35,21 +40,38 @@ jobs:
       - name: Signaturschlüssel bereitstellen
         env:
           KEYSTORE_B64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          PW_RAW: ${{ secrets.SIGNING_PASSWORD }}
+          IS_RELEASE: ${{ github.event_name == 'release' || inputs.release_tag != '' }}
         run: |
-          if [ -n "$KEYSTORE_B64" ]; then
-            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
-            echo "SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
-          elif [ "${{ github.event_name }}" = "release" ]; then
-            echo "::error::Die Secrets SIGNING_KEYSTORE_BASE64 und SIGNING_PASSWORD fehlen. Ohne sie kann kein Release gebaut werden."
-            exit 1
-          else
+          if [ -z "$KEYSTORE_B64" ]; then
+            if [ "$IS_RELEASE" = "true" ]; then
+              echo "::error::Die Secrets SIGNING_KEYSTORE_BASE64 und SIGNING_PASSWORD fehlen. Ohne sie kann kein Release gebaut werden."
+              exit 1
+            fi
             echo "::warning::Kein Signaturschlüssel hinterlegt, die APK wird nur mit einem Testschlüssel signiert."
+            exit 0
           fi
+          # Leerzeichen und Zeilenumbrüche entfernen, die beim Einfügen mitrutschen können
+          PW=$(printf '%s' "$PW_RAW" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+          echo "::add-mask::$PW"
+          if ! printf '%s' "$KEYSTORE_B64" | tr -d ' \r\n\t' | base64 -d > "$RUNNER_TEMP/release.jks" 2>/dev/null; then
+            echo "::error::SIGNING_KEYSTORE_BASE64 ist beschädigt. Bitte die lange Zeile aus der Datei noch einmal komplett einfügen."
+            exit 1
+          fi
+          if ! keytool -list -keystore "$RUNNER_TEMP/release.jks" -storepass "$PW" -alias slopeward > /dev/null 2>&1; then
+            echo "::error::SIGNING_PASSWORD passt nicht zum Schlüssel. Bitte das Passwort aus der Datei noch einmal genau einfügen."
+            exit 1
+          fi
+          echo "SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          echo "SIGNING_PASSWORD=$PW" >> "$GITHUB_ENV"
+          echo "Signaturschlüssel ist in Ordnung."
 
       - name: Versionsnummer festlegen
         run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            V="${GITHUB_REF_NAME#v}"
+          TAG="${{ github.event_name == 'release' && github.ref_name || inputs.release_tag }}"
+          if [ -n "$TAG" ]; then
+            V="${TAG#v}"
+            echo "RELEASE_TAG=$TAG" >> "$GITHUB_ENV"
           else
             V="dev-${{ github.run_number }}"
           fi
@@ -57,8 +79,6 @@ jobs:
           echo "VERSION_CODE=${{ github.run_number }}" >> "$GITHUB_ENV"
 
       - name: APK bauen
-        env:
-          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         run: |
           gradle assembleRelease
           cp app/build/outputs/apk/release/app-release.apk "Slopeward-$VERSION_NAME.apk"
@@ -69,7 +89,7 @@ jobs:
           path: Slopeward-${{ env.VERSION_NAME }}.apk
 
       - name: APK ans Release hängen
-        if: github.event_name == 'release'
+        if: env.RELEASE_TAG != ''
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" "Slopeward-$VERSION_NAME.apk" --clobber
+        run: gh release upload "$RELEASE_TAG" "Slopeward-$VERSION_NAME.apk" --clobber
