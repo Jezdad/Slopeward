@@ -19,11 +19,18 @@
 :root[data-theme="dark"]{
   --bg:#151b1c; --paper:#1d2526; --ink:#e6ecec; --muted:#9aa8aa; --line:#33403f;
   --accent:#f0c43a; --accent-ink:#151b1c; --dim:#5fbcc6; --wood:#6b5a3c; --wood-edge:#a88a57; --door:#7d6a48; --warn:#f08a5d; color-scheme:dark}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
-.wrap{max-width:820px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+[hidden]{display:none!important}
+.wrap{max-width:820px;margin:0 auto;padding-block:max(20px,env(safe-area-inset-top,0px)) 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between}
+header>div{min-width:0;flex:1 1 280px}
 h1{font-family:var(--f-display);font-weight:800;font-size:1.7rem;line-height:1.15;margin:0;text-wrap:balance;letter-spacing:-.01em}
 h2{font-family:var(--f-display);font-weight:600;font-size:1.05rem;margin:0 0 10px;text-wrap:balance}
 .sub{color:var(--muted);margin:4px 0 0;max-width:62ch}
+.lang{display:flex;gap:2px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:3px}
+.lang button{background:transparent;color:var(--muted);padding:6px 9px;font:600 .8rem var(--f-mono);border-radius:5px}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 section{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 label{display:flex;flex-direction:column;gap:4px;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
@@ -47,7 +54,10 @@ svg text{font-family:var(--f-mono);font-size:11px;fill:var(--ink)}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
-td.m{font-family:var(--f-mono);white-space:nowrap}
+td.m{font-family:var(--f-mono)}
+td.q{font-family:var(--f-mono);white-space:nowrap}
+td.m{min-width:9ch}
+td:nth-child(2){min-width:12ch}
 td small{color:var(--muted);display:block}
 .warn{color:var(--warn);font-weight:600;margin:10px 0 0}
 .warn:empty{display:none}
@@ -60,151 +70,311 @@ ul.steps{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
 </style>
 </head>
 <body>
-
-
 <div class="wrap">
   <header>
-    <h1>Dachschrägen-Schrankplaner</h1>
-    <p class="sub">Kniestock, höchsten Punkt und Abstand eingeben. Der Planer rechnet Neigung, Zuschnitt und Schnittwinkel aus. Eingaben in cm, Ergebnisse in mm.</p>
+    <div>
+      <h1 data-t="title"></h1>
+      <p class="sub" data-t="sub"></p>
+    </div>
+    <div class="lang" role="group" aria-label="Sprache / Language">
+      <button type="button" data-lang="de">DE</button>
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="fr">FR</button>
+      <button type="button" data-lang="es">ES</button>
+    </div>
   </header>
 
   <section>
-    <div class="group-t" style="margin-top:0">Wo steht der Schrank?</div>
-    <div class="seg" role="group" aria-label="Einbauort">
-      <button type="button" id="mG" aria-pressed="true">An der Giebelwand<small>Schräge läuft über die Breite</small></button>
-      <button type="button" id="mK" aria-pressed="false">Vor dem Kniestock<small>Schräge läuft über die Tiefe</small></button>
+    <div class="group-t" style="margin-top:0" data-t="where"></div>
+    <div class="seg" role="group">
+      <button type="button" id="mG" aria-pressed="true"><span data-t="modeG"></span><small data-t="modeGs"></small></button>
+      <button type="button" id="mK" aria-pressed="false"><span data-t="modeK"></span><small data-t="modeKs"></small></button>
     </div>
 
-    <div class="group-t">Raum (gemessen) <span class="tag" id="ex">Beispielwerte</span></div>
+    <div class="group-t"><span data-t="room"></span> <span class="tag" id="ex" data-t="example"></span></div>
     <div class="grid">
-      <label for="h1">Höhe am Kniestock<div class="in"><input id="h1" type="number" step="0.1" inputmode="decimal" value="100"><span class="u">cm</span></div></label>
-      <label for="h2">Höhe am höchsten Punkt<div class="in"><input id="h2" type="number" step="0.1" inputmode="decimal" value="250"><span class="u">cm</span></div></label>
-      <label for="d">Waagerechter Abstand dazwischen<div class="in"><input id="d" type="number" step="0.1" inputmode="decimal" value="260"><span class="u">cm</span></div></label>
+      <label for="h1"><span data-t="h1"></span><div class="in"><input id="h1" type="number" step="0.1" inputmode="decimal" value="100"><span class="u">cm</span></div></label>
+      <label for="h2"><span data-t="h2"></span><div class="in"><input id="h2" type="number" step="0.1" inputmode="decimal" value="250"><span class="u">cm</span></div></label>
+      <label for="d"><span data-t="d"></span><div class="in"><input id="d" type="number" step="0.1" inputmode="decimal" value="260"><span class="u">cm</span></div></label>
     </div>
-    <div class="group-t">Schrank</div>
+    <div class="group-t" data-t="cab"></div>
     <div class="grid">
-      <label for="W">Gesamtbreite<div class="in"><input id="W" type="number" step="0.1" inputmode="decimal" value="200"><span class="u">cm</span></div></label>
-      <label for="T">Tiefe<div class="in"><input id="T" type="number" step="0.1" inputmode="decimal" value="60"><span class="u">cm</span></div></label>
-      <label for="n">Anzahl Fächer/Türen<div class="in"><input id="n" type="number" step="1" min="1" inputmode="numeric" value="4"><span class="u">Stk</span></div></label>
-      <label for="o">Abstand zum Kniestock<div class="in"><input id="o" type="number" step="0.1" inputmode="decimal" value="0"><span class="u">cm</span></div></label>
+      <label for="W"><span data-t="W"></span><div class="in"><input id="W" type="number" step="0.1" inputmode="decimal" value="200"><span class="u">cm</span></div></label>
+      <label for="T"><span data-t="T"></span><div class="in"><input id="T" type="number" step="0.1" inputmode="decimal" value="60"><span class="u">cm</span></div></label>
+      <label for="n"><span data-t="n"></span><div class="in"><input id="n" type="number" step="1" min="1" inputmode="numeric" value="4"><span class="u" data-t="pcs"></span></div></label>
+      <label for="o"><span data-t="o"></span><div class="in"><input id="o" type="number" step="0.1" inputmode="decimal" value="0"><span class="u">cm</span></div></label>
     </div>
-    <div class="group-t">Material &amp; Luft</div>
+    <div class="group-t" data-t="mat"></div>
     <div class="grid">
-      <label for="m">Plattenstärke<div class="in"><input id="m" type="number" step="0.1" inputmode="decimal" value="1.9"><span class="u">cm</span></div></label>
-      <label for="s">Sockelhöhe<div class="in"><input id="s" type="number" step="0.1" inputmode="decimal" value="8"><span class="u">cm</span></div></label>
-      <label for="f">Luft zur Schräge<div class="in"><input id="f" type="number" step="0.1" inputmode="decimal" value="1"><span class="u">cm</span></div></label>
-      <label for="fu">Türfuge<div class="in"><input id="fu" type="number" step="0.1" inputmode="decimal" value="0.3"><span class="u">cm</span></div></label>
+      <label for="m"><span data-t="m"></span><div class="in"><input id="m" type="number" step="0.1" inputmode="decimal" value="1.9"><span class="u">cm</span></div></label>
+      <label for="s"><span data-t="s"></span><div class="in"><input id="s" type="number" step="0.1" inputmode="decimal" value="8"><span class="u">cm</span></div></label>
+      <label for="f"><span data-t="f"></span><div class="in"><input id="f" type="number" step="0.1" inputmode="decimal" value="1"><span class="u">cm</span></div></label>
+      <label for="fu"><span data-t="fu"></span><div class="in"><input id="fu" type="number" step="0.1" inputmode="decimal" value="0.3"><span class="u">cm</span></div></label>
     </div>
   </section>
 
   <section>
-    <h2>Dachschräge</h2>
+    <h2 data-t="slope"></h2>
     <div class="kpis">
-      <div class="kpi"><b id="kA">–</b><span>Neigung zur Waagerechten</span></div>
-      <div class="kpi"><b id="kP">–</b><span>Steigung</span></div>
-      <div class="kpi"><b id="kL">–</b><span>Länge der Schräge</span></div>
-      <div class="kpi"><b id="kM">–</b><span>Höhenzuwachs je 10 cm</span></div>
+      <div class="kpi"><b id="kA">–</b><span data-t="kA"></span></div>
+      <div class="kpi"><b id="kP">–</b><span data-t="kP"></span></div>
+      <div class="kpi"><b id="kL">–</b><span data-t="kL"></span></div>
+      <div class="kpi"><b id="kM">–</b><span data-t="kM"></span></div>
     </div>
     <div class="grid" style="margin-top:14px">
-      <label for="qx">Höhe bei Abstand vom Kniestock<div class="in"><input id="qx" type="number" step="0.1" inputmode="decimal" value="60"><span class="u">cm</span></div></label>
-      <div class="kpi" style="align-self:end"><b id="qy">–</b><span>Raumhöhe an dieser Stelle</span></div>
+      <label for="qx"><span data-t="qx"></span><div class="in"><input id="qx" type="number" step="0.1" inputmode="decimal" value="60"><span class="u">cm</span></div></label>
+      <div class="kpi" style="align-self:end"><b id="qy">–</b><span data-t="qy"></span></div>
     </div>
   </section>
 
   <section>
-    <h2 id="picT">Ansicht</h2>
-    <div class="svgbox"><svg id="pic" viewBox="0 0 640 360" role="img" aria-label="Skizze von Dachschräge und Schrank"></svg></div>
+    <h2 id="picT"></h2>
+    <div class="svgbox"><svg id="pic" viewBox="0 0 640 360" role="img"></svg></div>
     <p class="warn" id="warn"></p>
   </section>
 
   <section>
-    <h2>Schnittwinkel</h2>
+    <h2 data-t="angles"></h2>
     <ul class="steps" id="angles"></ul>
   </section>
 
   <section>
-    <div class="row"><h2 style="margin:0">Zuschnittliste</h2><button id="copy" type="button">Liste kopieren</button></div>
+    <div class="row"><h2 style="margin:0" data-t="cut"></h2><button id="copy" type="button" data-t="copy"></button></div>
     <div class="tbl" style="margin-top:10px"><table>
-      <thead><tr><th>Stk</th><th>Teil</th><th>Maße</th></tr></thead>
+      <thead><tr><th data-t="thQ"></th><th data-t="thP"></th><th data-t="thD"></th></tr></thead>
       <tbody id="cut"></tbody>
     </table></div>
     <p class="note" id="build"></p>
-    <p class="note">Vor dem Zuschnitt an zwei, drei Stellen nachmessen, Dachschrägen sind selten ganz gerade.</p>
+    <p class="note" data-t="measure"></p>
   </section>
 </div>
 
 <script>
+const L={
+de:{loc:"de-DE",
+ title:"Dachschrägen-Schrankplaner",
+ sub:"Kniestock, höchsten Punkt und Abstand eingeben. Der Planer rechnet Neigung, Zuschnitt und Schnittwinkel aus. Eingaben in cm, Ergebnisse in mm.",
+ where:"Wo steht der Schrank?",modeG:"An der Giebelwand",modeGs:"Schräge läuft über die Breite",modeK:"Vor dem Kniestock",modeKs:"Schräge läuft über die Tiefe",
+ room:"Raum (gemessen)",example:"Beispielwerte",h1:"Höhe am Kniestock",h2:"Höhe am höchsten Punkt",d:"Waagerechter Abstand dazwischen",
+ cab:"Schrank",W:"Gesamtbreite",T:"Tiefe",n:"Anzahl Fächer/Türen",o:"Abstand zum Kniestock",pcs:"Stk",
+ mat:"Material & Luft",m:"Plattenstärke",s:"Sockelhöhe",f:"Luft zur Schräge",fu:"Türfuge",
+ slope:"Dachschräge",kA:"Neigung zur Waagerechten",kP:"Steigung",kL:"Länge der Schräge",kM:"Höhenzuwachs je 10 cm",qx:"Höhe bei Abstand vom Kniestock",qy:"Raumhöhe an dieser Stelle",
+ angles:"Schnittwinkel",cut:"Zuschnittliste",copy:"Liste kopieren",copied:"Kopiert",copyFail:"Kopieren nicht möglich",thQ:"Stk",thP:"Teil",thD:"Maße",
+ measure:"Vor dem Zuschnitt an zwei, drei Stellen nachmessen, Dachschrägen sind selten ganz gerade.",
+ picG:"Vorderansicht",picK:"Seitenansicht",cabinet:"Schrank",dAbbr:"T",wAbbr:"B",
+ errIn:"Der höchste Punkt muss höher sein als der Kniestock und der Abstand größer als 0.",
+ wG1:"Der Schrank reicht über den höchsten Punkt hinaus. Breite oder Abstand zum Kniestock verkleinern.",
+ wG2:"Die erste Wand am Kniestock hat keine Höhe mehr. Abstand zum Kniestock vergrößern oder Sockel kleiner machen.",
+ wK1:"Der Schrank reicht über den höchsten Punkt hinaus. Vorne ist die Höhe auf den höchsten Punkt begrenzt, die Werte stimmen dann nicht mehr.",
+ wK2:"Hinten bleibt keine Seitenhöhe übrig. Abstand zum Kniestock vergrößern oder Sockel kleiner machen.",
+ sideL:"Seitenteil links (Kniestockseite)",sideR:"Seitenteil rechts (Firstseite)",mid:"Mittelwand {i}",
+ wallNote:"Tiefe × Höhe (kurze Seite), Oberkante {deg}° angefast, lange Seite {hi}",
+ bottom:"Boden",bottomG:"Durchgehend, alle Wände stehen drauf",bottomK:"Durchgehend, Seiten stehen drauf",
+ top:"Deckplatte (schräg)",topG:"Länge entlang der Schräge × Tiefe, beide Stirnkanten mit {deg}° Sägeblattneigung",topK:"Vorder- und Hinterkante mit {deg}° Sägeblattneigung",
+ doorN:"Tür {i} (Trapez)",doorDim:"{w} breit · links {l} · rechts {r}",doorNoteG:"Oberkante schräg mit {deg}°",
+ shelfN:"Einlegeboden Fach {i}",shelfNoteG:"Höchste Lage ca. {h} über Fußboden",
+ plinth:"Sockelblende",backG:"Rückwand (optional, Trapez)",backGdim:"{w} breit · links {l} · rechts {r}",backGnote:"Nur nötig, wenn die Giebelwand nicht als Rückwand reicht",
+ sideTrap:"Seitenteil (Trapez)",trapDim:"T {t} · hinten {b} · vorne {f}",sideNoteK:"Schräge Kante {l}",midTrap:"Mittelwand (Trapez)",sameSide:"Gleich wie Seitenteil",
+ door:"Tür",doorNoteK:"Breite × Höhe, vorgesetzt, oben gerade",shelf:"Einlegeboden",shelfNoteK:"Volle Tiefe nur bis {h} über Fußboden, darüber kürzen",
+ backK:"Rückwand (optional, HDF)",backKnote:"Nur nötig, wenn Abstand zum Kniestock",
+ aG:["Wände sind Rechtecke. Die Oberkante bekommt eine Fase mit <b>{deg}°</b> Sägeblattneigung, damit die Deckplatte satt aufliegt (hohe Seite zum First).",
+     "Deckplatte: beide Stirnkanten mit <b>{deg}°</b> Sägeblattneigung schneiden, dann stehen sie senkrecht.",
+     "Türen anreißen: links und rechts die Höhe abtragen und verbinden. Innenwinkel oben links <b>{a1}°</b>, oben rechts <b>{a2}°</b>.",
+     "Schmiege einstellen: <b>{deg}°</b> zur Waagerechten bzw. <b>{c}°</b> zur Senkrechten."],
+ aK:["Seitenteile/Mittelwände anreißen: hinten <b>{b}</b>, vorne <b>{f}</b> abtragen, Punkte verbinden und gerade sägen. Die Kante steigt mit <b>{deg}°</b>.",
+     "Innenwinkel am Seitenteil: oben hinten <b>{a2}°</b>, oben vorne <b>{a1}°</b>.",
+     "Deckplatte: Vorder- und Hinterkante mit <b>{deg}°</b> Sägeblattneigung schneiden, dann stehen die Kanten senkrecht.",
+     "Schmiege einstellen: <b>{deg}°</b> zur Waagerechten bzw. <b>{c}°</b> zur Senkrechten."],
+ buildG:"Aufbau: Sockel, durchgehender Boden, Seiten und Mittelwände stehen auf dem Boden, schräge Deckplatte liegt oben auf. Türen vorgesetzt, Rücken an der Giebelwand.",
+ buildK:"Aufbau: Sockel, durchgehender Boden, Seiten und Mittelwände stehen auf dem Boden, schräge Deckplatte liegt oben auf. Türen vorgesetzt.",
+ head:"Dachschräge: {deg}° (Kniestock {h1} cm, oben {h2} cm, Abstand {d} cm) – Schrank {mode}",modeGn:"an der Giebelwand",modeKn:"vor dem Kniestock"},
+
+en:{loc:"en-GB",
+ title:"Sloped Ceiling Cabinet Planner",
+ sub:"Enter the knee wall height, the highest point and the distance between them. The planner works out the pitch, the cut list and the cutting angles. Inputs in cm, results in mm.",
+ where:"Where does the cabinet go?",modeG:"Against the gable wall",modeGs:"Slope runs across the width",modeK:"In front of the knee wall",modeKs:"Slope runs across the depth",
+ room:"Room (measured)",example:"Example values",h1:"Height at knee wall",h2:"Height at highest point",d:"Horizontal distance between them",
+ cab:"Cabinet",W:"Total width",T:"Depth",n:"Number of bays/doors",o:"Distance from knee wall",pcs:"pcs",
+ mat:"Material & clearance",m:"Board thickness",s:"Plinth height",f:"Clearance to slope",fu:"Door gap",
+ slope:"Sloped ceiling",kA:"Pitch from horizontal",kP:"Gradient",kL:"Length of slope",kM:"Rise per 10 cm",qx:"Height at distance from knee wall",qy:"Ceiling height at that point",
+ angles:"Cutting angles",cut:"Cut list",copy:"Copy list",copied:"Copied",copyFail:"Could not copy",thQ:"Qty",thP:"Part",thD:"Dimensions",
+ measure:"Measure at two or three points before cutting. Sloped ceilings are rarely perfectly straight.",
+ picG:"Front view",picK:"Side view",cabinet:"Cabinet",dAbbr:"D",wAbbr:"W",
+ errIn:"The highest point must be higher than the knee wall, and the distance must be greater than 0.",
+ wG1:"The cabinet extends past the highest point. Reduce the width or the distance from the knee wall.",
+ wG2:"The first wall at the knee wall has no height left. Increase the distance from the knee wall or lower the plinth.",
+ wK1:"The cabinet extends past the highest point. The front height is capped there, so the values no longer apply.",
+ wK2:"No side height is left at the back. Increase the distance from the knee wall or lower the plinth.",
+ sideL:"Left side panel (knee wall side)",sideR:"Right side panel (ridge side)",mid:"Divider {i}",
+ wallNote:"Depth × height (short side), top edge bevelled at {deg}°, long side {hi}",
+ bottom:"Bottom panel",bottomG:"Full length, all walls stand on it",bottomK:"Full length, sides stand on it",
+ top:"Top panel (sloped)",topG:"Length along the slope × depth, both ends cut with {deg}° blade tilt",topK:"Front and back edges cut with {deg}° blade tilt",
+ doorN:"Door {i} (trapezoid)",doorDim:"{w} wide · left {l} · right {r}",doorNoteG:"Top edge sloped at {deg}°",
+ shelfN:"Shelf, bay {i}",shelfNoteG:"Highest position approx. {h} above floor",
+ plinth:"Plinth panel",backG:"Back panel (optional, trapezoid)",backGdim:"{w} wide · left {l} · right {r}",backGnote:"Only needed if the gable wall can't serve as the back",
+ sideTrap:"Side panel (trapezoid)",trapDim:"D {t} · back {b} · front {f}",sideNoteK:"Sloped edge {l}",midTrap:"Divider (trapezoid)",sameSide:"Same as side panel",
+ door:"Door",doorNoteK:"Width × height, overlay, square top",shelf:"Shelf",shelfNoteK:"Full depth only up to {h} above floor, shorten above that",
+ backK:"Back panel (optional, hardboard)",backKnote:"Only needed if there is a gap to the knee wall",
+ aG:["The walls are rectangles. Bevel the top edge with a <b>{deg}°</b> blade tilt so the top panel sits flush (high side towards the ridge).",
+     "Top panel: cut both ends with a <b>{deg}°</b> blade tilt so they end up vertical.",
+     "Mark out the doors: measure the height on the left and right and join the points. Inside angle top left <b>{a1}°</b>, top right <b>{a2}°</b>.",
+     "Set the sliding bevel to <b>{deg}°</b> from horizontal, or <b>{c}°</b> from vertical."],
+ aK:["Mark out side panels/dividers: measure <b>{b}</b> at the back and <b>{f}</b> at the front, join the points and cut straight. The edge rises at <b>{deg}°</b>.",
+     "Inside angles on the side panel: top back <b>{a2}°</b>, top front <b>{a1}°</b>.",
+     "Top panel: cut the front and back edges with a <b>{deg}°</b> blade tilt so they end up vertical.",
+     "Set the sliding bevel to <b>{deg}°</b> from horizontal, or <b>{c}°</b> from vertical."],
+ buildG:"Construction: plinth, full-length bottom panel, sides and dividers stand on the bottom, sloped top panel sits on top. Overlay doors, back against the gable wall.",
+ buildK:"Construction: plinth, full-length bottom panel, sides and dividers stand on the bottom, sloped top panel sits on top. Overlay doors.",
+ head:"Sloped ceiling: {deg}° (knee wall {h1} cm, top {h2} cm, distance {d} cm) – cabinet {mode}",modeGn:"against the gable wall",modeKn:"in front of the knee wall"},
+
+fr:{loc:"fr-FR",
+ title:"Planificateur de placards sous pente",
+ sub:"Saisissez la hauteur de la jambette, le point le plus haut et la distance entre les deux. L'outil calcule la pente, la liste de débit et les angles de coupe. Saisie en cm, résultats en mm.",
+ where:"Où se trouve le placard ?",modeG:"Contre le mur pignon",modeGs:"La pente suit la largeur",modeK:"Devant la jambette",modeKs:"La pente suit la profondeur",
+ room:"Pièce (mesures)",example:"Valeurs d'exemple",h1:"Hauteur à la jambette",h2:"Hauteur au point le plus haut",d:"Distance horizontale entre les deux",
+ cab:"Placard",W:"Largeur totale",T:"Profondeur",n:"Nombre de casiers/portes",o:"Distance à la jambette",pcs:"pcs",
+ mat:"Matériau et jeu",m:"Épaisseur du panneau",s:"Hauteur du socle",f:"Jeu sous le rampant",fu:"Jeu entre portes",
+ slope:"Rampant",kA:"Inclinaison par rapport à l'horizontale",kP:"Pente",kL:"Longueur du rampant",kM:"Montée par 10 cm",qx:"Hauteur à une distance de la jambette",qy:"Hauteur sous plafond à cet endroit",
+ angles:"Angles de coupe",cut:"Liste de débit",copy:"Copier la liste",copied:"Copié",copyFail:"Copie impossible",thQ:"Qté",thP:"Pièce",thD:"Dimensions",
+ measure:"Mesurez à deux ou trois endroits avant de couper, les rampants sont rarement parfaitement droits.",
+ picG:"Vue de face",picK:"Vue de côté",cabinet:"Placard",dAbbr:"P",wAbbr:"L",
+ errIn:"Le point le plus haut doit être plus haut que la jambette et la distance supérieure à 0.",
+ wG1:"Le placard dépasse le point le plus haut. Réduisez la largeur ou la distance à la jambette.",
+ wG2:"La première paroi côté jambette n'a plus de hauteur. Augmentez la distance à la jambette ou réduisez le socle.",
+ wK1:"Le placard dépasse le point le plus haut. À l'avant, la hauteur est limitée à ce point et les valeurs ne sont plus justes.",
+ wK2:"Il ne reste aucune hauteur de côté à l'arrière. Augmentez la distance à la jambette ou réduisez le socle.",
+ sideL:"Côté gauche (côté jambette)",sideR:"Côté droit (côté faîtage)",mid:"Séparation {i}",
+ wallNote:"Profondeur × hauteur (petit côté), chant supérieur chanfreiné à {deg}°, grand côté {hi}",
+ bottom:"Fond",bottomG:"Continu, toutes les parois reposent dessus",bottomK:"Continu, les côtés reposent dessus",
+ top:"Dessus (incliné)",topG:"Longueur le long du rampant × profondeur, les deux bouts avec lame inclinée à {deg}°",topK:"Chants avant et arrière avec lame inclinée à {deg}°",
+ doorN:"Porte {i} (trapèze)",doorDim:"{w} de large · gauche {l} · droite {r}",doorNoteG:"Chant supérieur incliné à {deg}°",
+ shelfN:"Tablette, casier {i}",shelfNoteG:"Position la plus haute env. {h} au-dessus du sol",
+ plinth:"Plinthe",backG:"Panneau arrière (option, trapèze)",backGdim:"{w} de large · gauche {l} · droite {r}",backGnote:"Seulement si le mur pignon ne suffit pas comme fond",
+ sideTrap:"Côté (trapèze)",trapDim:"P {t} · arrière {b} · avant {f}",sideNoteK:"Chant incliné {l}",midTrap:"Séparation (trapèze)",sameSide:"Identique au côté",
+ door:"Porte",doorNoteK:"Largeur × hauteur, en applique, haut droit",shelf:"Tablette",shelfNoteK:"Pleine profondeur seulement jusqu'à {h} du sol, raccourcir au-dessus",
+ backK:"Panneau arrière (option, HDF)",backKnote:"Seulement s'il y a un écart avec la jambette",
+ aG:["Les parois sont rectangulaires. Chanfreinez le chant supérieur avec une lame inclinée à <b>{deg}°</b> pour que le dessus porte bien (côté haut vers le faîtage).",
+     "Dessus : coupez les deux bouts avec une lame inclinée à <b>{deg}°</b>, ils seront alors verticaux.",
+     "Tracer les portes : reportez la hauteur à gauche et à droite et reliez les points. Angle intérieur en haut à gauche <b>{a1}°</b>, en haut à droite <b>{a2}°</b>.",
+     "Réglez la fausse équerre à <b>{deg}°</b> par rapport à l'horizontale, soit <b>{c}°</b> par rapport à la verticale."],
+ aK:["Tracer les côtés/séparations : reportez <b>{b}</b> à l'arrière et <b>{f}</b> à l'avant, reliez les points et sciez droit. Le chant monte à <b>{deg}°</b>.",
+     "Angles intérieurs du côté : en haut à l'arrière <b>{a2}°</b>, en haut à l'avant <b>{a1}°</b>.",
+     "Dessus : coupez les chants avant et arrière avec une lame inclinée à <b>{deg}°</b>, ils seront alors verticaux.",
+     "Réglez la fausse équerre à <b>{deg}°</b> par rapport à l'horizontale, soit <b>{c}°</b> par rapport à la verticale."],
+ buildG:"Montage : socle, fond continu, côtés et séparations posés sur le fond, dessus incliné posé par-dessus. Portes en applique, dos contre le mur pignon.",
+ buildK:"Montage : socle, fond continu, côtés et séparations posés sur le fond, dessus incliné posé par-dessus. Portes en applique.",
+ head:"Rampant : {deg}° (jambette {h1} cm, haut {h2} cm, distance {d} cm) – placard {mode}",modeGn:"contre le mur pignon",modeKn:"devant la jambette"},
+
+es:{loc:"es-ES",
+ title:"Planificador de armarios bajo cubierta",
+ sub:"Introduce la altura del murete, el punto más alto y la distancia entre ambos. El planificador calcula la inclinación, la lista de corte y los ángulos de corte. Entradas en cm, resultados en mm.",
+ where:"¿Dónde va el armario?",modeG:"Contra el hastial",modeGs:"La inclinación va a lo ancho",modeK:"Delante del murete",modeKs:"La inclinación va en profundidad",
+ room:"Habitación (medida)",example:"Valores de ejemplo",h1:"Altura en el murete",h2:"Altura en el punto más alto",d:"Distancia horizontal entre ambos",
+ cab:"Armario",W:"Ancho total",T:"Fondo",n:"Número de huecos/puertas",o:"Distancia al murete",pcs:"uds",
+ mat:"Material y holgura",m:"Grosor del tablero",s:"Altura del zócalo",f:"Holgura al techo",fu:"Holgura entre puertas",
+ slope:"Techo inclinado",kA:"Inclinación respecto a la horizontal",kP:"Pendiente",kL:"Longitud del faldón",kM:"Subida cada 10 cm",qx:"Altura a una distancia del murete",qy:"Altura del techo en ese punto",
+ angles:"Ángulos de corte",cut:"Lista de corte",copy:"Copiar lista",copied:"Copiado",copyFail:"No se pudo copiar",thQ:"Uds",thP:"Pieza",thD:"Medidas",
+ measure:"Mide en dos o tres puntos antes de cortar, los techos inclinados rara vez son totalmente rectos.",
+ picG:"Vista frontal",picK:"Vista lateral",cabinet:"Armario",dAbbr:"F",wAbbr:"A",
+ errIn:"El punto más alto debe estar por encima del murete y la distancia debe ser mayor que 0.",
+ wG1:"El armario sobrepasa el punto más alto. Reduce el ancho o la distancia al murete.",
+ wG2:"El primer lateral junto al murete ya no tiene altura. Aumenta la distancia al murete o baja el zócalo.",
+ wK1:"El armario sobrepasa el punto más alto. Delante la altura queda limitada a ese punto y los valores ya no son correctos.",
+ wK2:"Atrás no queda altura para el lateral. Aumenta la distancia al murete o baja el zócalo.",
+ sideL:"Lateral izquierdo (lado del murete)",sideR:"Lateral derecho (lado de la cumbrera)",mid:"Separador {i}",
+ wallNote:"Fondo × alto (lado corto), canto superior biselado a {deg}°, lado largo {hi}",
+ bottom:"Base",bottomG:"Continua, todos los laterales apoyan encima",bottomK:"Continua, los laterales apoyan encima",
+ top:"Tapa (inclinada)",topG:"Largo a lo largo de la inclinación × fondo, ambos extremos con la hoja inclinada a {deg}°",topK:"Cantos delantero y trasero con la hoja inclinada a {deg}°",
+ doorN:"Puerta {i} (trapecio)",doorDim:"{w} de ancho · izq. {l} · der. {r}",doorNoteG:"Canto superior inclinado a {deg}°",
+ shelfN:"Balda, hueco {i}",shelfNoteG:"Posición más alta aprox. {h} sobre el suelo",
+ plinth:"Rodapié frontal",backG:"Trasera (opcional, trapecio)",backGdim:"{w} de ancho · izq. {l} · der. {r}",backGnote:"Solo si el hastial no sirve como trasera",
+ sideTrap:"Lateral (trapecio)",trapDim:"F {t} · atrás {b} · delante {f}",sideNoteK:"Canto inclinado {l}",midTrap:"Separador (trapecio)",sameSide:"Igual que el lateral",
+ door:"Puerta",doorNoteK:"Ancho × alto, superpuesta, parte superior recta",shelf:"Balda",shelfNoteK:"Fondo completo solo hasta {h} sobre el suelo, por encima acortar",
+ backK:"Trasera (opcional, HDF)",backKnote:"Solo si queda distancia al murete",
+ aG:["Los laterales son rectángulos. Bisela el canto superior con la hoja inclinada a <b>{deg}°</b> para que la tapa apoye bien (lado alto hacia la cumbrera).",
+     "Tapa: corta ambos extremos con la hoja inclinada a <b>{deg}°</b>, así quedan verticales.",
+     "Marcar las puertas: lleva la altura a izquierda y derecha y une los puntos. Ángulo interior arriba a la izquierda <b>{a1}°</b>, arriba a la derecha <b>{a2}°</b>.",
+     "Ajusta la falsa escuadra a <b>{deg}°</b> respecto a la horizontal, o <b>{c}°</b> respecto a la vertical."],
+ aK:["Marcar laterales/separadores: lleva <b>{b}</b> atrás y <b>{f}</b> delante, une los puntos y corta recto. El canto sube a <b>{deg}°</b>.",
+     "Ángulos interiores del lateral: arriba atrás <b>{a2}°</b>, arriba delante <b>{a1}°</b>.",
+     "Tapa: corta los cantos delantero y trasero con la hoja inclinada a <b>{deg}°</b>, así quedan verticales.",
+     "Ajusta la falsa escuadra a <b>{deg}°</b> respecto a la horizontal, o <b>{c}°</b> respecto a la vertical."],
+ buildG:"Montaje: zócalo, base continua, laterales y separadores apoyados en la base, tapa inclinada encima. Puertas superpuestas, espalda contra el hastial.",
+ buildK:"Montaje: zócalo, base continua, laterales y separadores apoyados en la base, tapa inclinada encima. Puertas superpuestas.",
+ head:"Techo inclinado: {deg}° (murete {h1} cm, arriba {h2} cm, distancia {d} cm) – armario {mode}",modeGn:"contra el hastial",modeKn:"delante del murete"}
+};
 const ids=["h1","h2","d","W","T","n","o","m","s","f","fu","qx"];
 const $=i=>document.getElementById(i);
-let mode="G";
+let mode="G", lang=null, lastText="";
 try{const sv=JSON.parse(localStorage.getItem("dsp")||"null");if(sv){ids.forEach(i=>{if(sv[i]!=null)$(i).value=sv[i]});if(sv.mode)mode=sv.mode;$("ex").hidden=true}}catch(e){}
-const mm=v=>Math.round(v*10).toLocaleString("de-DE")+" mm";
-const n1=v=>v.toLocaleString("de-DE",{maximumFractionDigits:1});
-let lastText="";
+try{lang=localStorage.getItem("dsp_lang")}catch(e){}
+if(!L[lang]){const nl=(navigator.language||"de").slice(0,2).toLowerCase();lang=L[nl]?nl:"en"}
+const t=(k,v)=>{let s=L[lang][k];if(v)for(const x in v)s=s.split("{"+x+"}").join(v[x]);return s};
+const mm=v=>Math.round(v*10).toLocaleString(L[lang].loc)+"\u00a0mm";
+const n1=v=>v.toLocaleString(L[lang].loc,{maximumFractionDigits:1});
+function setLang(l){
+  lang=l;try{localStorage.setItem("dsp_lang",l)}catch(e){}
+  document.documentElement.lang=l;document.title=t("title");
+  document.querySelectorAll("[data-t]").forEach(el=>el.textContent=t(el.dataset.t));
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===l));
+  calc();
+}
 function setMode(m){mode=m;$("mG").setAttribute("aria-pressed",m==="G");$("mK").setAttribute("aria-pressed",m==="K");calc()}
 function calc(){
   const v={};ids.forEach(i=>v[i]=parseFloat($(i).value)||0);
   try{localStorage.setItem("dsp",JSON.stringify({...Object.fromEntries(ids.map(i=>[i,$(i).value])),mode}))}catch(e){}
   const {h1,h2,d,W,T,o,m,s,f,fu}=v; const n=Math.max(1,Math.round(v.n));
-  const dh=h2-h1; if(d<=0||dh<=0){$("warn").textContent="Der höchste Punkt muss höher sein als der Kniestock und der Abstand größer als 0.";return}
+  const dh=h2-h1; if(d<=0||dh<=0){$("warn").textContent=t("errIn");return}
   const a=Math.atan(dh/d), deg=a*180/Math.PI, tn=Math.tan(a), cs=Math.cos(a);
   $("kA").textContent=n1(deg)+"°";$("kP").textContent=n1(tn*100)+" %";$("kL").textContent=mm(Math.hypot(d,dh));$("kM").textContent=mm(10*tn);
   $("qy").textContent=mm(Math.min(h1+v.qx*tn,h2));
   const top=x=>h1+x*tn-f, dv=m/cs, warn=[];
+  const D=n1(deg), A={deg:D,a1:n1(90-deg),a2:n1(90+deg),c:n1(90-deg)};
   let parts, angles, build;
   if(mode==="G"){
-    // Schrank an der Giebelwand: Breite läuft vom Kniestock Richtung First
-    if(o+W>d)warn.push("Der Schrank reicht über den höchsten Punkt hinaus. Breite oder Abstand zum Kniestock verkleinern.");
-    const pitch=(W-m)/n; // Abstand der Wände (Außenkante zu Außenkante)
+    if(o+W>d)warn.push(t("wG1"));
+    const pitch=(W-m)/n;
     const walls=[]; for(let i=0;i<=n;i++){const x=o+i*pitch;walls.push({x,lo:top(x)-s-m-dv,hi:top(x)-s-m-dv+m*tn})}
-    if(walls[0].lo<=0)warn.push("Die erste Wand am Kniestock hat keine Höhe mehr. Abstand zum Kniestock vergrößern oder Sockel kleiner machen.");
+    if(walls[0].lo<=0)warn.push(t("wG2"));
     const iw=pitch-m, dw=(W-(n+1)*fu)/n;
-    parts=walls.map((w,i)=>[1,i===0?"Seitenteil links (Kniestockseite)":i===n?"Seitenteil rechts (Firstseite)":`Mittelwand ${i}`,`${mm(T)} × ${mm(w.lo)}`,`Tiefe × Höhe (kurze Seite), Oberkante ${n1(deg)}° angefast, lange Seite ${mm(w.hi)}`]);
-    parts.push([1,"Boden",`${mm(W)} × ${mm(T)}`,"Durchgehend, alle Wände stehen drauf"]);
-    parts.push([1,"Deckplatte (schräg)",`${mm(W/cs)} × ${mm(T)}`,`Länge entlang der Schräge × Tiefe, beide Stirnkanten mit ${n1(deg)}° Sägeblattneigung`]);
-    for(let i=0;i<n;i++){const xl=o+i*(dw+fu)+fu, xr=xl+dw;parts.push([1,`Tür ${i+1} (Trapez)`,`${mm(dw)} breit · links ${mm(top(xl)-s-fu)} · rechts ${mm(top(xr)-s-fu)}`,`Oberkante schräg mit ${n1(deg)}°`])}
-    for(let i=0;i<n;i++){parts.push([1,`Einlegeboden Fach ${i+1}`,`${mm(iw-0.1)} × ${mm(T-2)}`,`Höchste Lage ca. ${mm(walls[i].lo+s+m-2)} über Fußboden`])}
-    parts.push([1,"Sockelblende",`${mm(W)} × ${mm(s)}`,""]);
-    parts.push([1,"Rückwand (optional, Trapez)",`${mm(W-0.2)} breit · links ${mm(top(o)-s-0.2)} · rechts ${mm(top(o+W)-s-0.2)}`,"Nur nötig, wenn die Giebelwand nicht als Rückwand reicht"]);
-    angles=[
-      `Wände sind Rechtecke. Die Oberkante bekommt eine Fase mit <b>${n1(deg)}°</b> Sägeblattneigung, damit die Deckplatte satt aufliegt (hohe Seite zum First).`,
-      `Deckplatte: beide Stirnkanten mit <b>${n1(deg)}°</b> Sägeblattneigung schneiden, dann stehen sie senkrecht.`,
-      `Türen anreißen: links und rechts die Höhe abtragen und verbinden. Innenwinkel oben links <b>${n1(90-deg)}°</b>, oben rechts <b>${n1(90+deg)}°</b>.`,
-      `Schmiege einstellen: <b>${n1(deg)}°</b> zur Waagerechten bzw. <b>${n1(90-deg)}°</b> zur Senkrechten.`
-    ];
-    build="Aufbau: Sockel, durchgehender Boden, Seiten und Mittelwände stehen auf dem Boden, schräge Deckplatte liegt oben auf. Türen vorgesetzt, Rücken an der Giebelwand.";
-    $("picT").textContent="Vorderansicht";
-    drawG(v,a,tn,top,walls,n,pitch);
+    parts=walls.map((w,i)=>[1,i===0?t("sideL"):i===n?t("sideR"):t("mid",{i}),`${mm(T)} × ${mm(w.lo)}`,t("wallNote",{deg:D,hi:mm(w.hi)})]);
+    parts.push([1,t("bottom"),`${mm(W)} × ${mm(T)}`,t("bottomG")]);
+    parts.push([1,t("top"),`${mm(W/cs)} × ${mm(T)}`,t("topG",{deg:D})]);
+    for(let i=0;i<n;i++){const xl=o+i*(dw+fu)+fu, xr=xl+dw;parts.push([1,t("doorN",{i:i+1}),t("doorDim",{w:mm(dw),l:mm(top(xl)-s-fu),r:mm(top(xr)-s-fu)}),t("doorNoteG",{deg:D})])}
+    for(let i=0;i<n;i++){parts.push([1,t("shelfN",{i:i+1}),`${mm(iw-0.1)} × ${mm(T-2)}`,t("shelfNoteG",{h:mm(walls[i].lo+s+m-2)})])}
+    parts.push([1,t("plinth"),`${mm(W)} × ${mm(s)}`,""]);
+    parts.push([1,t("backG"),t("backGdim",{w:mm(W-0.2),l:mm(top(o)-s-0.2),r:mm(top(o+W)-s-0.2)}),t("backGnote")]);
+    angles=L[lang].aG.map(x=>tpl(x,A));
+    build=t("buildG");
+    $("picT").textContent=t("picG");
+    drawG(v,a,tn,top,n);
   } else {
-    if(o+T>d)warn.push("Der Schrank reicht über den höchsten Punkt hinaus. Vorne ist die Höhe auf den höchsten Punkt begrenzt, die Werte stimmen dann nicht mehr.");
+    if(o+T>d)warn.push(t("wK1"));
     const sh=top(o)-s-m-dv, sv=top(o+T)-s-m-dv, iw=(W-(n+1)*m)/n, dw=(W-(n+1)*fu)/n, dhgt=top(o+T)-s-fu, sl=T/cs;
-    if(sh<=0)warn.push("Hinten bleibt keine Seitenhöhe übrig. Abstand zum Kniestock vergrößern oder Sockel kleiner machen.");
+    if(sh<=0)warn.push(t("wK2"));
+    const td=t("trapDim",{t:mm(T),b:mm(sh),f:mm(sv)});
     parts=[
-      [2,"Seitenteil (Trapez)",`T ${mm(T)} · hinten ${mm(sh)} · vorne ${mm(sv)}`,`Schräge Kante ${mm(sl)}`],
-      ...(n>1?[[n-1,"Mittelwand (Trapez)",`T ${mm(T)} · hinten ${mm(sh)} · vorne ${mm(sv)}`,"Gleich wie Seitenteil"]]:[]),
-      [1,"Boden",`${mm(W)} × ${mm(T)}`,"Durchgehend, Seiten stehen drauf"],
-      [1,"Deckplatte (schräg)",`${mm(W)} × ${mm(sl)}`,`Vorder- und Hinterkante mit ${n1(deg)}° Sägeblattneigung`],
-      [n,"Tür",`${mm(dw)} × ${mm(dhgt)}`,"Breite × Höhe, vorgesetzt, oben gerade"],
-      [n,"Einlegeboden",`${mm(iw-0.1)} × ${mm(T-2)}`,`Volle Tiefe nur bis ${mm(sh+s+m)} über Fußboden, darüber kürzen`],
-      [1,"Sockelblende",`${mm(W)} × ${mm(s)}`,""],
-      [1,"Rückwand (optional, HDF)",`${mm(W-0.2)} × ${mm(top(o)-s-0.2)}`,"Nur nötig, wenn Abstand zum Kniestock"]
+      [2,t("sideTrap"),td,t("sideNoteK",{l:mm(sl)})],
+      ...(n>1?[[n-1,t("midTrap"),td,t("sameSide")]]:[]),
+      [1,t("bottom"),`${mm(W)} × ${mm(T)}`,t("bottomK")],
+      [1,t("top"),`${mm(W)} × ${mm(sl)}`,t("topK",{deg:D})],
+      [n,t("door"),`${mm(dw)} × ${mm(dhgt)}`,t("doorNoteK")],
+      [n,t("shelf"),`${mm(iw-0.1)} × ${mm(T-2)}`,t("shelfNoteK",{h:mm(sh+s+m)})],
+      [1,t("plinth"),`${mm(W)} × ${mm(s)}`,""],
+      [1,t("backK"),`${mm(W-0.2)} × ${mm(top(o)-s-0.2)}`,t("backKnote")]
     ];
-    angles=[
-      `Seitenteile/Mittelwände anreißen: hinten <b>${mm(sh)}</b>, vorne <b>${mm(sv)}</b> abtragen, Punkte verbinden und gerade sägen. Die Kante steigt mit <b>${n1(deg)}°</b>.`,
-      `Innenwinkel am Seitenteil: oben hinten <b>${n1(90+deg)}°</b>, oben vorne <b>${n1(90-deg)}°</b>.`,
-      `Deckplatte: Vorder- und Hinterkante mit <b>${n1(deg)}°</b> Sägeblattneigung schneiden, dann stehen die Kanten senkrecht.`,
-      `Schmiege einstellen: <b>${n1(deg)}°</b> zur Waagerechten bzw. <b>${n1(90-deg)}°</b> zur Senkrechten.`
-    ];
-    build="Aufbau: Sockel, durchgehender Boden, Seiten und Mittelwände stehen auf dem Boden, schräge Deckplatte liegt oben auf. Türen vorgesetzt.";
-    $("picT").textContent="Seitenansicht";
+    angles=L[lang].aK.map(x=>tpl(x,{...A,b:mm(sh),f:mm(sv)}));
+    build=t("buildK");
+    $("picT").textContent=t("picK");
     drawK(v,a,tn,top);
   }
   $("warn").textContent=warn.join(" ");
-  $("cut").innerHTML=parts.map(p=>`<tr><td class="m">${p[0]}×</td><td>${p[1]}${p[3]?`<small>${p[3]}</small>`:""}</td><td class="m">${p[2]}</td></tr>`).join("");
-  $("angles").innerHTML=angles.map(t=>`<li>${t}</li>`).join("");
+  $("cut").innerHTML=parts.map(p=>`<tr><td class="q">${p[0]}×</td><td>${p[1]}${p[3]?`<small>${p[3]}</small>`:""}</td><td class="m">${p[2].split(" · ").join(" ·<wbr> ")}</td></tr>`).join("");
+  $("angles").innerHTML=angles.map(x=>`<li>${x}</li>`).join("");
   $("build").textContent=build;
-  lastText=`Dachschräge: ${n1(deg)}° (Kniestock ${n1(h1)} cm, oben ${n1(h2)} cm, Abstand ${n1(d)} cm) – Schrank ${mode==="G"?"an der Giebelwand":"vor dem Kniestock"}\n`+parts.map(p=>`${p[0]}x ${p[1]}: ${p[2]}${p[3]?" ("+p[3]+")":""}`).join("\n");
+  lastText=t("head",{deg:D,h1:n1(h1),h2:n1(h2),d:n1(d),mode:t(mode==="G"?"modeGn":"modeKn")})+"\n"+parts.map(p=>`${p[0]}x ${p[1]}: ${p[2]}${p[3]?" ("+p[3]+")":""}`).join("\n");
 }
+function tpl(s,v){for(const x in v)s=s.split("{"+x+"}").join(v[x]);return s}
 function frame(v,extent){
   const Wv=640,Hv=360,pad=48, span=extent*1.08, sc=Math.min((Wv-pad*2)/span,(Hv-pad*1.6)/v.h2);
   return {X:x=>pad+x*sc,Y:y=>Hv-30-y*sc,span};
@@ -219,8 +389,8 @@ function roofAndDims(g,v,a,tn,X,Y,span){
   const r=34, ax=X(d*0.62), ay=Y(h1+d*0.62*tn);
   g.push(`<path d="M${ax+r},${ay} A${r},${r} 0 0 0 ${ax+r*Math.cos(a)},${ay-r*Math.sin(a)}" fill="none" stroke="var(--accent)" stroke-width="2.5"/><line x1="${ax}" y1="${ay}" x2="${ax+r+14}" y2="${ay}" stroke="var(--accent)" stroke-dasharray="3 3"/><text x="${ax+r+18}" y="${ay-6}" style="font-weight:600">${n1(a*180/Math.PI)}°</text>`);
 }
-function drawG(v,a,tn,top,walls,n,pitch){
-  const {d,W,o,s,m,fu}=v, {X,Y,span}=frame(v,Math.max(d,o+W)), g=[];
+function drawG(v,a,tn,top,n){
+  const {d,W,o,s,fu}=v, {X,Y,span}=frame(v,Math.max(d,o+W)), g=[];
   roofAndDims(g,v,a,tn,X,Y,span);
   const x0=o,x1=o+W;
   g.push(`<polygon points="${X(x0)},${Y(0)} ${X(x0)},${Y(top(x0))} ${X(x1)},${Y(top(x1))} ${X(x1)},${Y(0)}" fill="var(--wood)" stroke="var(--wood-edge)" stroke-width="1.5"/>`);
@@ -228,7 +398,7 @@ function drawG(v,a,tn,top,walls,n,pitch){
   const dw=(W-(n+1)*fu)/n;
   for(let i=0;i<n;i++){const xl=o+i*(dw+fu)+fu,xr=xl+dw;g.push(`<polygon points="${X(xl)},${Y(s+fu/2)} ${X(xl)},${Y(top(xl)-fu)} ${X(xr)},${Y(top(xr)-fu)} ${X(xr)},${Y(s+fu/2)}" fill="var(--door)" stroke="var(--wood-edge)"/>`);
     g.push(`<text x="${(X(xl)+X(xr))/2}" y="${Y(s)-12}" text-anchor="middle">${i+1}</text>`)}
-  g.push(`<text x="${(X(x0)+X(x1))/2}" y="${Y(0)-2}" text-anchor="middle" dy="-0.2em" style="font-size:10px;fill:var(--muted)">B ${n1(W)} cm</text>`);
+  g.push(`<text x="${(X(x0)+X(x1))/2}" y="${Y(0)-2}" text-anchor="middle" dy="-0.2em" style="font-size:10px;fill:var(--muted)">${t("wAbbr")} ${n1(W)} cm</text>`);
   $("pic").innerHTML=g.join("");
 }
 function drawK(v,a,tn,top){
@@ -238,15 +408,16 @@ function drawK(v,a,tn,top){
   g.push(`<polygon points="${X(x0)},${Y(0)} ${X(x0)},${Y(top(x0))} ${X(x1)},${Y(top(x1))} ${X(x1)},${Y(0)}" fill="var(--wood)" stroke="var(--wood-edge)" stroke-width="1.5"/>`);
   g.push(`<line x1="${X(x0)}" y1="${Y(s)}" x2="${X(x1)}" y2="${Y(s)}" stroke="var(--wood-edge)"/>`);
   g.push(`<line x1="${X(x0)}" y1="${Y(s+m)}" x2="${X(x1)}" y2="${Y(s+m)}" stroke="var(--wood-edge)"/>`);
-  g.push(`<text x="${(X(x0)+X(x1))/2}" y="${Y(top(x0)/2)}" text-anchor="middle" style="font-weight:600">Schrank</text><text x="${(X(x0)+X(x1))/2}" y="${Y(top(x0)/2)+14}" text-anchor="middle">T ${n1(T)} cm</text>`);
+  g.push(`<text x="${(X(x0)+X(x1))/2}" y="${Y(top(x0)/2)}" text-anchor="middle" style="font-weight:600">${t("cabinet")}</text><text x="${(X(x0)+X(x1))/2}" y="${Y(top(x0)/2)+14}" text-anchor="middle">${t("dAbbr")} ${n1(T)} cm</text>`);
   $("pic").innerHTML=g.join("");
 }
 ids.forEach(i=>$(i).addEventListener("input",()=>{$("ex").hidden=true;calc()}));
 $("mG").addEventListener("click",()=>setMode("G"));
 $("mK").addEventListener("click",()=>setMode("K"));
-$("copy").addEventListener("click",async()=>{const b=$("copy");try{if(window.Android){Android.copy(lastText)}else{await navigator.clipboard.writeText(lastText)}b.textContent="Kopiert"}catch(e){b.textContent="Kopieren nicht möglich"}setTimeout(()=>b.textContent="Liste kopieren",1800)});
+document.querySelectorAll("[data-lang]").forEach(b=>b.addEventListener("click",()=>setLang(b.dataset.lang)));
+$("copy").addEventListener("click",async()=>{const b=$("copy");try{if(window.Android){Android.copy(lastText,t("copied"))}else{await navigator.clipboard.writeText(lastText)}b.textContent=t("copied")}catch(e){b.textContent=t("copyFail")}setTimeout(()=>b.textContent=t("copy"),1800)});
 setMode(mode);
+setLang(lang);
 </script>
-
 </body>
 </html>

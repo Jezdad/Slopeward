@@ -29,10 +29,10 @@ public class MainActivity extends Activity {
 
     class Bridge {
         @JavascriptInterface
-        public void copy(String text) {
+        public void copy(String text, String message) {
             ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setPrimaryClip(ClipData.newPlainText("Zuschnittliste", text));
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, "Zuschnittliste kopiert", Toast.LENGTH_SHORT).show());
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show());
         }
     }
 }
