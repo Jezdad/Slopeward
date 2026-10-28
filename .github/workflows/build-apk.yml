@@ -1,7 +1,8 @@
 name: APK bauen
 
-# Läuft bei Änderungen an der App, bei jedem veröffentlichten Release
-# und auf Knopfdruck. Bei einem Release wird die APK ans Release gehängt.
+# Läuft bei Änderungen an der App und auf Knopfdruck.
+# Mit einer Versionsnummer beim Start legt der Workflow das Release selbst an,
+# hängt die signierte APK an und veröffentlicht es.
 on:
   push:
     branches: [main]
@@ -10,12 +11,14 @@ on:
       - '*.gradle'
       - 'gradle.properties'
       - '.github/workflows/**'
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
-      release_tag:
-        description: 'Optional: Tag eines bestehenden Releases (z. B. v1.0.0), an das die APK gehängt wird'
+      version:
+        description: 'Versionsnummer für ein neues Release, z. B. 1.0.0 (leer lassen für einen Testbuild)'
+        required: false
+        default: ''
+      notes:
+        description: 'Beschreibung des Releases'
         required: false
         default: ''
 
@@ -41,7 +44,7 @@ jobs:
         env:
           KEYSTORE_B64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
           PW_RAW: ${{ secrets.SIGNING_PASSWORD }}
-          IS_RELEASE: ${{ github.event_name == 'release' || inputs.release_tag != '' }}
+          IS_RELEASE: ${{ inputs.version != '' }}
         run: |
           if [ -z "$KEYSTORE_B64" ]; then
             if [ "$IS_RELEASE" = "true" ]; then
@@ -70,13 +73,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="${{ github.event_name == 'release' && github.ref_name || inputs.release_tag }}"
+          TAG="${{ inputs.version }}"
           if [ -n "$TAG" ]; then
             # Schreibweisen wie "1.0.0", "V1.0.0" oder "v.1.0.0" vereinheitlichen
             V=$(printf '%s' "$TAG" | tr -d '[:space:]' | sed -E 's/^[vV]?\.?//')
             TAG="v$V"
-            if ! gh release view "$TAG" > /dev/null 2>&1; then
-              echo "::error::Es gibt kein Release mit dem Tag $TAG. Bitte zuerst unter Releases ein Release mit diesem Tag veröffentlichen."
+            if gh release view "$TAG" > /dev/null 2>&1; then
+              echo "::error::Version $V gibt es schon. Bitte eine neue Versionsnummer nehmen, z. B. eine höhere."
               exit 1
             fi
             echo "RELEASE_TAG=$TAG" >> "$GITHUB_ENV"
@@ -96,10 +99,15 @@ jobs:
           name: Slopeward-${{ env.VERSION_NAME }}
           path: Slopeward-${{ env.VERSION_NAME }}.apk
 
-      - name: APK ans Release hängen
+      - name: Release veröffentlichen
         if: env.RELEASE_TAG != ''
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          files: Slopeward-${{ env.VERSION_NAME }}.apk
-          fail_on_unmatched_files: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          # Erst als Entwurf anlegen und die APK anhängen, dann veröffentlichen
+          gh release create "$RELEASE_TAG" --draft --target "$GITHUB_SHA" \
+            --title "Slopeward $VERSION_NAME" --notes "${NOTES:-Slopeward $VERSION_NAME}"
+          gh release upload "$RELEASE_TAG" "Slopeward-$VERSION_NAME.apk"
+          gh release edit "$RELEASE_TAG" --draft=false --latest
+          echo "Release: $(gh release view "$RELEASE_TAG" --json url -q .url)"
