@@ -20,11 +20,11 @@ To update, install the new APK over the old one. Your inputs are kept.
 
 ## Publishing a new version
 
-1. Go to **Releases** → **Draft a new release**.
-2. Under **Choose a tag**, enter a new version such as `v1.1.0` and select **Create new tag**.
-3. Add a title and a short description of what changed, then click **Publish release**.
+1. Go to **Actions** → **APK bauen** → **Run workflow**.
+2. Enter a new version number such as `1.1.0` and, optionally, a short description of what changed.
+3. Click **Run workflow**.
 
-GitHub then builds the signed APK and attaches it to the release after a few minutes.
+After a few minutes, the release with the signed APK appears under **Releases**. Don't create releases by hand under Releases: this repository uses immutable releases, so files can't be added to a release once it's published.
 
 ## Project layout
 
