@@ -98,6 +98,8 @@ jobs:
 
       - name: APK ans Release hängen
         if: env.RELEASE_TAG != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$RELEASE_TAG" "Slopeward-$VERSION_NAME.apk" --clobber
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          files: Slopeward-${{ env.VERSION_NAME }}.apk
+          fail_on_unmatched_files: true
