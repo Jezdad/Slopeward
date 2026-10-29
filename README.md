@@ -18,14 +18,6 @@ The app works offline and remembers your inputs. "Copy list" puts the cut list o
 
 To update, install the new APK over the old one. Your inputs are kept.
 
-## Publishing a new version
-
-1. Go to **Actions** → **APK bauen** → **Run workflow**.
-2. Enter a new version number such as `1.1.0` and, optionally, a short description of what changed.
-3. Click **Run workflow**.
-
-After a few minutes, the release with the signed APK appears under **Releases**. Don't create releases by hand under Releases: this repository uses immutable releases, so files can't be added to a release once it's published.
-
 ## Project layout
 
 | Path | Contents |
